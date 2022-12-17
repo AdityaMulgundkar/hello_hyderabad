@@ -1,35 +1,84 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:rpi_gpio/rpi_gpio.dart';
 
-import 'exampleApp.dart';
+var temp;
 
-/// Launch the example by injecting an instance of [RpiGpio].
-/// This only works on the Raspberry Pi.
-///
-/// The [exampleApp] resides in a separate library
-/// so that it does not reference the [RpiGpio] native libary
-/// and thus can be tested with a mock [Gpio] on any platform.
-main() async {
-  final gpio = await initialize_RpiGpio();
-  await runExample(gpio);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+  if (Platform.isAndroid) {
+    AndroidDeviceInfo info = await deviceInfo.androidInfo;
+    print(info.toMap());
+  } else if (Platform.isIOS) {
+    IosDeviceInfo info = await deviceInfo.iosInfo;
+    print(info.toMap());
+  } else if (Platform.isLinux) {
+    LinuxDeviceInfo info = await deviceInfo.linuxInfo;
+    print(info.toMap());
+  } else if (Platform.isMacOS) {
+    MacOsDeviceInfo info = await deviceInfo.macOsInfo;
+    print(info.toMap());
+  } else if (Platform.isWindows) {
+    WindowsDeviceInfo info = await deviceInfo.windowsInfo;
+    print(info.toMap());
+  }
+
+  final info = await deviceInfo.deviceInfo;
+  print(info.toMap());
+
+  temp = info;
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Welcome to Flutter',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Welcome to Flutter'),
-        ),
-        body: const Center(
-          child: Text('Hello World'),
-        ),
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: const MyHomePage(),
+    );
+  }
+}
+
+class MyHomePage extends StatelessWidget {
+  const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Device Info Plus'),
+      ),
+      body: Center(
+          child: Column(
+        children: [
+          const Text(
+            'Build Details:',
+          ),
+          Text(
+            'product: ${temp.product}',
+          ),
+          Text(
+            'display: ${temp.display}',
+          ),
+          Text(
+            'hardware: ${temp.hardware}',
+          ),
+          Text(
+            'model: ${temp.model}',
+          ),
+        ],
+      )),
     );
   }
 }
